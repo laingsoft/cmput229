@@ -1,0 +1,16 @@
+1) The "lb" instruction with the format '$rs, imm' is a pseudo instruction.
+The two machine codes that are used to achieve it's function are: "lui $rs, 4097"
+and "lb $rs, offset(base)".
+
+2) The value of register $t3 after the 'add $t3, $t2, $t3' line is 0x00000026 or 38.
+This is because the value of $t3 is set to the value of $t0 + $t1, which 
+is set to be 6 + 12 = 18. Then the value of $t3 is set to $t3 + $t2, which evaluates
+to 18 + 20 = 38. 
+
+3) The value of of the first command of the .text segment is stored at this address.
+???
+
+4) 
+5) Without the 'syscall' instruction, the assembler will not not when to end 
+execution, and will attempt to execute lines that do not have instructions. leading
+to an error or exception being thrown. 
