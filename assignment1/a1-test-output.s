@@ -1,6 +1,6 @@
 	.text
-main:	la	$a0, message
-	li	$v0, 4
+main:	li	$v0, 4
+	la	$a0, message
 	syscall
 
 	lb	$a0, solution
