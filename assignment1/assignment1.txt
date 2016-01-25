@@ -7,10 +7,14 @@ This is because the value of $t3 is set to the value of $t0 + $t1, which
 is set to be 6 + 12 = 18. Then the value of $t3 is set to $t3 + $t2, which evaluates
 to 18 + 20 = 38. 
 
-3) The value of of the first command of the .text segment is stored at this address.
-???
+3) The value of stored at this location is '3c'. If we were to convert this to an ascii
+character, it would be the "<" character. 
 
-4) 
+4) The value of the label "Str" is stored at memory location 0x10010004, in the
+last two positions of the memory. The address reads "0x44434241", but our "A" 
+character is the last two digits of the hex number - That is, 41, which corresponds
+to the Ascii character for A, which is 0x41.
+
 5) Without the 'syscall' instruction, the assembler will not not when to end 
 execution, and will attempt to execute lines that do not have instructions. leading
 to an error or exception being thrown. 
