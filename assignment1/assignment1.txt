@@ -30,4 +30,20 @@ to .asciiz. This adds a termination character to the end of the sring, allowing 
 output to be generated. 
 
 
+PART 3:
+
+1) The program can be fixed by changing the assignment of location "number" from type .space to type .word in 
+the .data segment. The error that is given is "Exception 5 [Address error in store] occured and ignored"
+Xspim gives the error that there is an unaligned address at 0x1001001e, and that an exception occured at 
+pc=0x00400030. By changing the type of number to a word, rather than space, the assembler is able to assign
+the correct address size, and location to each label.
+
+2) The program has tried to store a word at the address following the first data space, which was address
+0x1001001f. Because the previous address was not aligned to  a word memory, attempting to store a word lead 
+to an exception being thrown. The program has stored no hex values on the unfixed program, as the sw function
+has failed.
+
+3) The program has stored the sring "abcdefg" at memory addresses 0x10010000 to 0x10010006 in the space that
+has been set aside in the .data segment between 0x10010000 to 0x10010010
+
 

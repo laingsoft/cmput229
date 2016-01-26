@@ -17,4 +17,4 @@ main:
 
        .data
 buffer: .space 30
-number: .space 4
+number: .word 1
