@@ -1,3 +1,5 @@
+
+PART 1:
 1) The "lb" instruction with the format '$rs, imm' is a pseudo instruction.
 The two machine codes that are used to achieve it's function are: "lui $rs, 4097"
 and "lb $rs, offset(base)".
@@ -18,3 +20,14 @@ to the Ascii character for A, which is 0x41.
 5) Without the 'syscall' instruction, the assembler will not not when to end 
 execution, and will attempt to execute lines that do not have instructions. leading
 to an error or exception being thrown. 
+
+PART 2:
+
+1) The program's ouput was no as desired. When printing the string at location message, the 
+program would print the entire conents of the .data block. Including the second ascii sring
+at location exra. The solution to this error was to change the type of message from .ascii
+to .asciiz. This adds a termination character to the end of the sring, allowing the proper 
+output to be generated. 
+
+
+

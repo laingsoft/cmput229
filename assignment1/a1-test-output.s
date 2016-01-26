@@ -1,6 +1,6 @@
 	.text
-main:	li	$v0, 4
-	la	$a0, message
+main:	la	$a0, message
+	li	$v0, 4
 	syscall
 
 	lb	$a0, solution
@@ -12,6 +12,6 @@ main:	li	$v0, 4
 
 	.data
 
-message:	.ascii	"optimal solution="
+message:	.asciiz	"optimal solution="
 solution: 	.byte 0xfe
 extra:	  	.asciiz "this is not part of the solution"
