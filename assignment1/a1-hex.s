@@ -11,19 +11,18 @@
 # then $t1 should contain decimal 10 upon termination
 
        .text
-main:  li	$t0, '1'		# load an ASCII character in $t0
+main:  li	$t0, '0'		# load an ASCII character in $t0
        blt 	$t0, 0x30, error 	# if (character < ’0’) goto error
        bgt 	$t0, 0x39, atof 	# if (character > ’9’) goto atof
        b 	done 	   		# no, goto done
 
 atof:  blt 	$t0, 0x41, error	# if (character < ’A’) goto error
        bgt 	$t0, 0x46, error	# if (character > ’F’) goto error
-       sub 	$t2, $t0, 0x40		# map it from 1-16
-       addi	$t2, 0x09 		# Add 0x09 to get the right value 
+       sub 	$t1, $t0, 0x37		# map it from 1-16 
+	   b exit
 
 done:  
-       sub	$t2, $t0, 0x40
-       addi	$t2, 0x09 		# keep only the lowest byte in $t1
+       andi $t1, $t0, 0xf	# keep only the lowest byte in $t1
        b exit
 
 error: li	$t1, 0xff		# load the error code
