@@ -22,14 +22,14 @@ main:
 
 	lw $t1, length # $t1= length
 
-loop:	addi $t1, -1 # $t1= $t1 - 1
-	bltz $t1, next # if (t1 < 0)
-	goto next
+loop:	
+	addi $t1, -1 # $t1= $t1 - 1
+	bltz $t1, next # if (t1 < 0) goto next
 	#
 	# ... loop body ...
 	#
 	b loop
-	
+
 next:
 	# ... more user code ...
 	li $v0, 10 #exit
@@ -50,7 +50,8 @@ prompt: la $a0, msg_prompt # display prompt
 	jr $ra # return from procedure
 # --------------
 # procedure 'getlen'
-getlen: li $v0, 8
+getlen: 
+	li $v0, 8
 	jr $ra
 # --------------
 # procedure 'print_NL'
