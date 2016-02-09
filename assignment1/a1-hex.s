@@ -11,7 +11,7 @@
 # then $t1 should contain decimal 10 upon termination
 
        .text
-main:  li	$t0, '0'		# load an ASCII character in $t0
+main:  li	$t0, 'A'		# load an ASCII character in $t0
        blt 	$t0, 0x30, error 	# if (character < ’0’) goto error
        bgt 	$t0, 0x39, atof 	# if (character > ’9’) goto atof
        b 	done 	   		# no, goto done
