@@ -12,7 +12,10 @@ main:
 	jal getlen # get string length
 	sw $v0, length # store length
 
-	la $a0, msg_length # print length li $v0, 4 syscall
+	la $a0, msg_length # print length 
+	li $v0, 4 
+	syscall
+	
 	lw $a0, length
 	li $v0, 1
 	syscall
@@ -25,13 +28,13 @@ main:
 loop:	
 	addi $t1, -1 # $t1= $t1 - 1
 	bltz $t1, next # if (t1 < 0) goto next
-	#
-	# ... loop body ...
-	#
+#
+# ... loop body ...
+#
 	b loop
 
 next:
-	# ... more user code ...
+#	... more user code ...
 	li $v0, 10 #exit
 	syscall
 # --------------
@@ -59,4 +62,5 @@ print_NL:
 	li $a0, 0xA # newline character
 	li $v0, 11
 	syscall
-
+	jr $ra
+# --------------
