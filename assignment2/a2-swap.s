@@ -9,16 +9,16 @@
 #---------------------------------------------------------------
 
 #---------------------------------------------------------------
-# The getlen subroutine returns the amount of characters in a given 
-# string. The procedure takes input as a string stored in buff
-# The procedure returns the number of characters in a given string in 
-# register $v0. 
+# The swapchar subroutine runs a loop three times that exchanges the 
+# locations of the characters at (0,1), (2,3), (4,5), etc.
 #
 # Register Usage:
 #
 #       a0: Contains the address of a character in Buff
-#       v0: Contains the return length of the string
-#		t1: Stores the value in memory at a0
+#       t4: Stores the number of times we need to iterate
+#		t1: Stores the first character to swap 
+#		t2: Stores the second character to swap
+#		t9: stores the constant 2, used to divide t4		
 #		ra: Reference address
 #---------------------------------------------------------------
 
@@ -47,16 +47,14 @@ main:
 
 	jal print_NL #print newline
 	
-	jal swap_char
-	lw $a0, buff
-	li $v0,4
+	jal swap_char #Call our subroutine that edits the string
+	la $a0, buff #Load the string we edited
+	li $v0,4 #Set the syscall to output strings
 	syscall
+	jal print_NL #Print a newline
 	
-	jal print_NL #Print newline
-	
-
 	lw $t1, length # $t1= length
-	nop
+
 loop:	
 	addi $t1, -1 # $t1= $t1 - 1
 	bltz $t1, next # if (t1 < 0) goto next
@@ -115,20 +113,25 @@ print_NL:
 # --------------
 # procedure 'swap_char'
 swap_char:
-	la $a0, buff
-	li $t4, 3
+	la $a0, buff #Load the String we Want to edit
+	lw $t4, length #Load the Length of the string that we get from getlen
+	li $t9, 2 #Load immediate 2, so we know how many times to iterate
+	div $t4, $t9 #divide the length by 2
+	mflo $t4 #Move the quotient from LO to the counter register
+	
 swap_loop:
-	beq $t4, $zero, swap_end
+	beq $t4, $zero, swap_end #End the loop if it's run 3 times
 	
 	lb $t1, 0($a0) #Load the first character
+
+	lb $t2, 1($a0) #Load the second character
 	
-	addi $t3,$a0,1
-	lb $t2, 0($t3) #Load the second character
-	sb $t2, 0($a0) #
-	sb $t1, 0($t3)
-	addi $a0,$a0, 1
-	addi $t4,$t4,-1
-	j swap_loop
+	sb $t2, 0($a0) #Save the second char at the memory address of 1
+	sb $t1, 1($a0) #Save the First char at the memory address of 2
+	
+	addi $a0,$a0, 2 #Step Forward Two Characters
+	addi $t4,$t4,-1 #Decrement the Loop Counter.
+	j swap_loop #Run the Loop Again
 
 swap_end:
-	jr $ra
+	jr $ra #If the loop is complete, return to the caller
