@@ -1,0 +1,82 @@
+#---------------------------------------------------------------
+# Assignment:           1
+# Due Date:             January 29, 2016
+# Name:                 Charles Laing
+# Unix ID:              cclaing
+# Lecture Section:      B1
+# Lab Section:          H02 (Tuesday, 5pm - 7:50pm)
+# Teaching Assistant(s):   Vincent Zhang
+#---------------------------------------------------------------
+PART 1:
+1) The "lb" instruction with the format '$rs, imm' is a pseudo instruction.
+The two machine codes that are used to achieve it's function are: "lui $rs, 4097"
+and "lb $rs, offset(base)". lui loads the upper initial value of 4097, meaning that the data is
+selected from the user data segment. The lb operation loads the value from the specific byte
+into the correct register. 
+
+2) The value of register $t3 after the 'add $t3, $t2, $t3' line is 0x00000026 or 38.
+This is because the value of $t3 is set to the value of $t0 + $t1, which 
+is set to be 6 + 12 = 18. Then the value of $t3 is set to $t3 + $t2, which evaluates
+to 18 + 20 = 38. 
+
+3) The value of stored at this location is '3c'. If we were to convert this to an ascii
+character, it would be the "<" character. 
+
+4) The value of the label "Str" is stored at memory location 0x10010004, in the
+last two positions of the memory. The address reads "0x44434241", but our "A" 
+character is the last two digits of the hex number - That is, 0x41, which corresponds
+to the letter A of the ascii character set .
+
+5) Without the 'syscall' instruction, the assembler will not know when to end 
+execution, and will attempt to execute lines that do not have instructions. leading
+to an error or exception being thrown. 
+
+PART 2:
+
+1) The program's ouput was not as desired. When printing the string at location message, the 
+program would print the entire conents of the .data block. Including the second ascii sring
+at location extra. The solution to this error was to change the type of 'message' from .ascii
+to .asciiz. This adds a null termination character to the end of the sring, allowing program to stop printing 
+at the end of the string.
+
+
+PART 3:
+
+1) The program can be fixed by changing the assignment of location "number" from type .space to type .word in 
+the .data segment. The error that is given is "Exception 5 [Address error in store] occured and ignored"
+Xspim gives the error that there is an unaligned address at 0x1001001e, and that an exception occured at 
+pc=0x00400030. By changing the type of number to a word, rather than space, the assembler is able to assign
+the correct address size and location to each label, fixing the error.
+
+2) The program has stored the value -10 at address 0x10010020. The Hex value is 0xfffffff6. Because the type was changed from 
+.space to .word, the value is being stored in alignment with 32 bit words rather than sequentially after the .space 30. The reason 
+the value -10 is stored as 0xfffffff6, is because signed integers are stored as two's compliment in MIPS, this means that 
+0xfffffff6 == -10.   
+
+3) The program has stored the sring "abcdefg" at memory addresses 0x10010000. This is because this is the .space 30 that we
+have set aside in the .data segment of the program. 
+
+
+Part 4:
+
+The program that was presented had several errors. The first and most obvious one, was that the representation 
+of the ASCII character was appearing as a decimal rather than a Hex value in register $t1. The solution to this
+problem, was to change the subtraction in the atof section from 'sub $t2, $t0, 0x31' to 'sub $t2, $t0, 0x37'. 
+This method fixes the issue of the incorrect ascii value being placed in the register for characters A-F. 
+
+Next, values between 0-9 would not produce the correct output. This was because the 'andi' operation in the done section
+was not properly masking the values. To fix this, we can change the line: 'andi $t1, $t0, 0xFF' to 
+'andi $t1, $t0, 0xf'. Because of this change, We need to add 'b exit' to the end of the atof section, as we don't need
+to select for the lowest byte. Because we are no longer selecting for the lowest byte, we must change the register
+that we write the values in for atof. We can do this by changing 'sub $t2, $t0, 0x37' to 'sub $t1, $t0, 0x37'.
+
+My fixes allow the program to only select for the lowest byte if that character is 1 - 9. If the character is A to F, it subtracts
+0x37 from the ascii value, and then places that value in the register, which will give the correct output for ascii characters
+A - F
+
+
+
+
+
+
+
