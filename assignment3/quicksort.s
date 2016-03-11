@@ -12,7 +12,7 @@
 
 	L: 		.half 		10, 30, 20 15, 8, 7, 5, 0				#Take input
 	.align 1
-	S:		.space		2*40									#Create the Stack
+	S:		.space		80									#Create the Stack
 
 #---------------------------------------------------------------
 #	REGISTER USAGE:
