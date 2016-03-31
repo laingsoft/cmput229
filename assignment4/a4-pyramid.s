@@ -1,12 +1,13 @@
 # ------------------------------
-# pyramid.s:  print a pyramid of asterisks recursively
+# pyramid.s:  print a pyramid of asterisks recursively 
+# This code is borrowed from the Lab 4 Exercise. 
 # ------------------------------
 	    .globl pyramid
 	    .globl write_frame
 
 	    .data
-N:	    .word  15	# width of the pyramid
-K:	    .word  5	# left margin of the pyramid's base
+N:	    .word  1	# width of the pyramid
+K:	    .word  0	# left margin of the pyramid's base
 
 char_fill:  .byte  '*'
 char_space: .byte  ' '
@@ -17,14 +18,32 @@ str_a0:	    .asciiz "| a0= "
 str_a1:     .asciiz "  a1= "
 str_ra:	    .asciiz "  ra= "
 
+s_a0:		.word	0
+s_v0:		.word	0
+
 # ------------------------------
 	  .text
 main:
+	  li	$a3, 0xffff0000		#Set up the base address for I/O
+	  li	$s1, 2
+	  
+	#Enable the Keyboard interrupts
+	  sw	$s1, 0($a3)			#Enable the Keyboard Interrupts
 	  addi  $sp, $sp, -8		# allocate frame: $a0, $a1
+	  
+	# Enable global interrupts
+   	  li	$s1, 0x0000ff01	       # set IE= 1 (enable interrupts) , EXL= 0
+   	  mtc0	$s1, $12	           # SR (=R12) = enable bits
+	  
+	# Start timer
+   	   mtc0  $0, $9                  # COUNT = 0
+   	   addi  $t0, $0, 50             # $t0 = 50 ticks
+   	   mtc0  $t0, $11                # CP0:R11 (Compare Reg.)= $t0
+	  
+loop: 
 	  lw    $a0, N	  		# $a0= N
-	  lw    $a1, K			# $a1= K
-	  jal   pyramid			# call pyramid(N,K)
-
+	  lw    $a1, K			# $a1= K	
+	  beq $t0, $t0, loop
 exit:	  addi  $sp, $sp, 8		# release stack frame
 	  li    $v0, 10; syscall	# exit
 
@@ -117,3 +136,88 @@ print_NL:
           syscall
           jr    $ra
 # ------------------------------
+
+	.globl lab4_handler
+lab4_handler:
+	.set noat
+	move $k1, $at
+	.set at
+	sw $v0, s_v0
+	sw $a0, s_a0
+	
+	mfc0 $k0, $13
+	
+	srl		$a0, $k0, 11
+	andi	$a0, 0x1
+	bgtz	$a0, keyboard
+	
+	srl		$a0, $k0, 15
+	andi	$a0, 0x1
+	bgtz	$a0, timer
+	
+keyboard:
+	lw $t2, 0xffff0004
+	
+	beq $t2,0x69, incri #Handle I
+	beq $t2, 0x64, decri #Handle D
+	beq $t2, 0x72,	incrk		#Handle R
+	beq $t2, 0x6c	decrk		#Handle L
+	beq $t2, 0x71	quit		#Handle Q
+	b	exit
+incri:	lw  $t0, N
+		la	$t1, N
+		beq $t0, 20, lab4_handler_ret
+		addi $t0, 1
+		sw	$t0, 0($t1)
+		b lab4_handler_ret
+decri:	lw  $t0, N
+		la	$t1, N
+		beq $t0, 1, lab4_handler_ret
+		addi $t0, -1
+		sw	$t0, 0($t1)
+		b lab4_handler_ret
+incrk:	lw  $t0, K
+		la	$t1, K
+		beq	$t0, 40, lab4_handler_ret
+		addi $t0, 1
+		sw	$t0, 0($t1)
+		b lab4_handler_ret
+decrk:	lw  $t0, K
+		la	$t1, K
+		beq $t0, 0, lab4_handler_ret
+		addi $t0, -1
+		sw	$t0, 0($t1)
+		b lab4_handler_ret
+finish:
+	b lab4_handler_ret
+
+
+timer:
+   	   mtc0  $0, $9                  # COUNT = 0
+   	   addi  $t0, $0, 50             # $t0 = 50 ticks
+   	   mtc0  $t0, $11                # CP0:R11 (Compare Reg.)= $t0
+		lw  $v0  s_v0		# restore $v0, $a0, and $at
+   		lw  $a0, s_a0
+   		jal pyramid	
+	b lab4_handler_ret
+	
+	
+
+lab4_handler_ret:
+
+   		.set noat
+   		move $at $k1		# Restore $at
+   		.set at
+   	
+   		mtc0 $0 $13		# Clear Cause register
+   	
+   		mfc0  $k0 $12		# Set Status register
+   		ori   $k0 0x1		# Interrupts enabled
+   		mtc0  $k0 $12
+   		
+   		eret			# exception return
+
+quit:
+	li	$v0, 10
+	syscall
+	
