@@ -1,3 +1,13 @@
+#---------------------------------------------------------------
+# Assignment:           4
+# Due Date:             April 1, 2016
+# Name:                 Charles Laing
+# Unix ID:              cclaing
+# Lecture Section:      B1
+# Lab Section:          H02 (Tuesday 17:00 - 19:50)
+# Teaching Assistant(s):   Vincent Zhang
+#---------------------------------------------------------------
+
 	.data
 buffer:		.space	60
 prompt:		.asciiz	"input string = '"
@@ -8,7 +18,10 @@ newline:	.asciiz "\n"
 
 
 	.text
-	
+#-------------------------------
+# Main sets ups the base addresses, enabled interrupts, and starts the timer. 
+# a3 = Address for IO, s1 = 2, a2 = Base address of buffer
+#-------------------------------
 main:	
 	li		$a3, 0xffff0000		#Set up the base address for I/O
 	li		$s1, 2
@@ -24,15 +37,22 @@ main:
 	  
 	# Start timer
    	   mtc0  $0, $9                  # COUNT = 0
-   	   addi  $t0, $0, 1000             # $t0 = 1000 ticks
+   	   addi  $t0, $0, 1000           # $t0 = 1000 ticks Gives us enough time to enter our codes
    	   mtc0  $t0, $11                # CP0:R11 (Compare Reg.)= $t0
 	   
 
-	addi	$a1, $sp, 0  
+	addi	$a1, $sp, 0  			#Make a copy of stack pointer in a1
+#-------------------------------
+#Inifinite loop to keep checking for interrupts
+#-------------------------------
 loop: beq $t0, $t0, loop			#Infinite Loop
 
 	.globl	lab4_handler
-	
+
+#-------------------------------
+# Code to handle the interrupts, either from keyboard or Timer
+# Uses at for the exception code, a0 for the cause bit
+#-------------------------------
 lab4_handler:
 	.set noat
 	move $k1, $at				#Take in the value from the exception and give it to k1
@@ -47,7 +67,10 @@ lab4_handler:
 	srl		$a0, $k0, 15		#Wasn't a keyboard exception? Was it a timer?
 	andi	$a0, 0x1			#Lets check...
 	bgtz	$a0, timer			#If it was, go do the timer stuff
-
+#-------------------------------
+#Runs after an exception occurs and it was the fault of the keyboard
+#Adds the key to the stack for later use
+#-------------------------------
 keyboard:
 	lb		$t1, 4($a3)			#Take the value of the key
 	addi	$sp, $sp, -1		#Push it onto the stack
@@ -55,7 +78,11 @@ keyboard:
 	b		lab4_handler_ret
 		
 	
-
+#-------------------------------
+# Resets the timer, uses cp0 and registers $9 and $11. 
+# should reset the timer to generate another interrupt 1000 ticks from now
+# Also begins printing the frame, and starts the number generation process.
+#-------------------------------
 timer:
 	#Reset the timer
    	mtc0  $0, $9                  # COUNT = 0
@@ -69,73 +96,95 @@ timer:
 	syscall						#call
 	li		$v0, 11				#Set spim to print characters
 	
-	
-	
+#-------------------------------
+# Pops keycodes off the stack and gets a running sum
+# It doesnt matter if the keycodes overflow, so no need to check
+# uses a0 to hold the value, and $sp, automatically decrements the stack
+#-------------------------------
 numloop:
 	beq		$sp, $a1, numgen	#If the stack is empty, exit
 	lb		$a0, 0($sp)			#Load the byte from the stack
 	addi	$sp, 1				#Pop it from the stack
-	add	$s2, $s2, $a0			#create a running sum
+	add		$s2, $s2, $a0		#create a running sum
 	syscall						#call
 	b numloop					#Iterate
 
 
-
+#-------------------------------
+# Handles exiting the interrupt. clears the cause, status registers, 
+# enables interrupts again
+#-------------------------------
 lab4_handler_ret:
 	
 	.set noat
 	move $at $k1		# Restore $at
 	.set at
 
-	mtc0 $0 $13		# Clear Cause register
+	mtc0 $0 $13			# Clear Cause register
 
 	mfc0  $k0 $12		# Set Status register
 	ori   $k0 0x1		# Interrupts enabled
 	mtc0  $k0 $12
 	
-	eret			# exception return
-	
+	eret				# exception return
+
+#-------------------------------
+# Generates the random number based on what is in the user stack
+# Numbers should be relatively random
+# inputs:
+#	s2: sum of all entered keycodes
+# outputs:
+#	a0: random number between 0 and 99
+#-------------------------------
 numgen:
-	la	$a0, comma
-	li	$v0, 4
-	syscall
+	la	$a0, comma		#Load the comma string
+	li	$v0, 4			#print it
+	syscall				#call
 	
-	move 	$s4, $s2
-	# sll		$s3, $s2, 11
-	# xor		$s2, $s2, $s3
-	# srl		$s3, $s2, 8
-	# xor		$s2, $s2, $s3
-	# sll		$s4, $s4, 19
-	# xor		$s3, $s2, $s4
-	# srl		$s3, $s3, 14
-	# and		$s3, 0x63
-	li		$s2, 100
-	div		$s4, $s2
-	mfhi	$s3
-	move	$a0, $s3
-	jal printp2
-	b		lab4_handler_ret
+	move 	$s4, $s2	#Move S2 into S4 so that we can work on it without affecting anything.
+
+	#Random number alg: N = sum of all keys
+	# N%100 = RandomInt
+	# Should be relatively close to psuedorandom, at least seems that way. 	
+	li		$s2, 100	#Set S2 to 100, which is the max for the random number that we want
+
+	div		$s4, $s2	#Divide S4 by 100, which will give us a remainder to use
+	mfhi	$s3			#Get the remainder from the hi register
 	
+	move	$a0, $s3	#Move it into a0 for printing and passing.
+	jal printp2			#Print the second half of the string
+	b		lab4_handler_ret	#Exit the interrupt
+
+#-------------------------------
+# Prints the second half of the string
+# takes in:
+# 	a0: Random number that was generated above
+# gives out:
+#	print values
+#-------------------------------
 printp2:
-	addi	$sp, $sp, -8
-	sw		$v0, 8($sp)
+	addi	$sp, $sp, -8	#Make room on the stack for v0
+	sw		$v0, 8($sp)		#Push v0 onto the stack
 	
-	li		$v0, 1
-	syscall
-	la 		$a0, newline
-	li		$v0, 4
-	syscall
+	li		$v0, 1			#Set up spim to print integers
+	syscall					#Print our random number
+	la 		$a0, newline	#Grab the newline character
+	li		$v0, 4			#Print it
+	syscall					
 	
-	lw		$v0, 8($sp)
-	addi	$sp, $sp, 8
-	
-	jr	$ra
+	lw		$v0, 8($sp)		#Get v0 back from the stack
+	addi	$sp, $sp, 8		#decrement the stack
+		
+	jr		$ra				#Return back to caller
 	
 	
   
   
   
-  
+#------------------------------- 
+# Exit the program
+# (This probably will never be run)
+#-------------------------------
 exit:
 	li		$v0, 10
 	syscall

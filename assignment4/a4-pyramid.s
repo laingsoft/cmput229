@@ -1,3 +1,12 @@
+#---------------------------------------------------------------
+# Assignment:           4
+# Due Date:             April 1, 2016
+# Name:                 Charles Laing
+# Unix ID:              cclaing
+# Lecture Section:      B1
+# Lab Section:          H02 (Tuesday 17:00 - 19:50)
+# Teaching Assistant(s):   Vincent Zhang
+#---------------------------------------------------------------
 # ------------------------------
 # pyramid.s:  print a pyramid of asterisks recursively 
 # This code is borrowed from the Lab 4 Exercise. 
@@ -49,6 +58,7 @@ exit:	  addi  $sp, $sp, 8		# release stack frame
 # ------------------------------
 # function pyramid ($a0= N, $a1= K)
 #
+#-------------------------------
 
           nop; nop
 pyramid:
@@ -83,6 +93,7 @@ pyramid_end:
 # ------------------------------
 # function write_char ($a0= char, $a1= count)
 #
+#-------------------------------
           nop; nop
 write_char:
 	  beqz  $a1, write_char_end	# $a1 == 0: return
@@ -95,7 +106,9 @@ write_char_end:
 	  jr    $ra		        # return
 # ------------------------------
 # function write_frame ($sp) 
+# Prints the frame that we require at the beginning of each pyramid
 #
+#-------------------------------
 	   nop; nop
 write_frame:
 	#When we're writing the frame, we are going to need to play with the values of a0 and a1, so we need to save them
@@ -123,13 +136,20 @@ write_frame:
 # ------------------------------
 # function print_NL()
 #
+#-------------------------------
 	  nop; nop
 print_NL:
           li   $a0, 0xA   # newline character
           li   $v0, 11
           syscall
           jr    $ra
-# ------------------------------
+		  
+
+# ----------------------------------------------------------------
+#  Code below is for handling interrupts
+#  All of the code above is explicity for handling drawing the pyramid.
+# ----------------------------------------------------------------
+
 
 	.globl lab4_handler
 #-------------------------------
